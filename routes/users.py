@@ -5,6 +5,16 @@ from src.deps import get_current_user
 from src.conf.db import get_db
 from src.services.cloudinary_service import upload_avatar
 
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address)
+
+@router.get("/me")
+@limiter.limit("5/minute")
+async def me(user=Depends(get_current_user)):
+    return user
+
 router = APIRouter(prefix="/api/users")
 
 @router.get("/me")
