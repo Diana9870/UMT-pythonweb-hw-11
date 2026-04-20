@@ -1,18 +1,15 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from src.deps import get_current_user
-from src.conf.db import get_db
-from src.schemas.contact import ContactCreate
-from src.repository.contacts import create_contact, get_contacts
+from app.database import SessionLocal
+from app.models import Contact
 
-router = APIRouter(prefix="/api/contacts")
+router = APIRouter()
 
-@router.post("/", status_code=201)
-async def create(data: ContactCreate, db: Session = Depends(get_db), user=Depends(get_current_user)):
-    return await create_contact(db, data, user.id)
-
+def get_db():
+    db = SessionLocal()
+    yield db
 
 @router.get("/")
-async def all(db: Session = Depends(get_db), user=Depends(get_current_user)):
-    return await get_contacts(db, user.id)
+def get_contacts(user_id: int, db: Session = Depends(get_db)):
+    return db.query(Contact).filter(Contact.user_id == user_id).all()

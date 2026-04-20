@@ -1,23 +1,27 @@
-from datetime import datetime, timedelta
-from jose import jwt, JWTError
+from jose import jwt
 from passlib.context import CryptContext
-from src.conf.config import settings
+from datetime import datetime, timedelta
+import os
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+SECRET_KEY = os.getenv("SECRET_KEY")
+ALGORITHM = "HS256"
 
-def hash_password(password):
+pwd_context = CryptContext(schemes=["bcrypt"])
+
+def hash_password(password: str):
     return pwd_context.hash(password)
 
 def verify_password(plain, hashed):
     return pwd_context.verify(plain, hashed)
 
 def create_access_token(data: dict):
-    data.update({"exp": datetime.utcnow() + timedelta(minutes=30)})
-    return jwt.encode(data, settings.SECRET_KEY, algorithm="HS256")
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(minutes=30)
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-def create_email_token(data: dict):
-    data.update({"exp": datetime.utcnow() + timedelta(hours=24)})
-    return jwt.encode(data, settings.SECRET_KEY, algorithm="HS256")
+def create_email_token(email: str):
+    return create_access_token({"sub": email})
 
-def decode_token(token):
-    return jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+def decode_token(token: str):
+    return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])

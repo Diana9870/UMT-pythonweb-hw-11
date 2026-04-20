@@ -1,47 +1,59 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from fastapi.security import OAuth2PasswordRequestForm
 
-from src.conf.db import get_db
-from src.schemas.user import UserCreate
-from src.repository.users import get_user_by_email, create_user
-from src.services.auth import hash_password, verify_password, create_access_token, create_email_token, decode_token
-from src.services.email import send_verification_email
+from app.database import SessionLocal
+from app.models import User
+from app.services.auth import *
+from app.services.email import send_verification_email
 
-router = APIRouter(prefix="/api/auth")
+router = APIRouter()
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 @router.post("/register", status_code=201)
-async def register(user: UserCreate, db: Session = Depends(get_db)):
-    if await get_user_by_email(db, user.email):
-        raise HTTPException(409)
+def register(email: str, password: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == email).first()
+    if user:
+        raise HTTPException(status_code=409, detail="User exists")
 
-    hashed = hash_password(user.password)
-    new_user = await create_user(db, user.email, hashed)
+    new_user = User(
+        email=email,
+        password=hash_password(password)
+    )
+    db.add(new_user)
+    db.commit()
 
-    token = create_email_token({"sub": user.email})
-    await send_verification_email(user.email, token)
+    token = create_email_token(email)
+    send_verification_email(email, token)
 
     return new_user
 
 
-@router.get("/verify")
-async def verify(token: str, db: Session = Depends(get_db)):
-    data = decode_token(token)
-    user = await get_user_by_email(db, data["sub"])
-    user.is_verified = True
-    db.commit()
-    return {"message": "verified"}
-
-
 @router.post("/login")
-async def login(form: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = await get_user_by_email(db, form.username)
+def login(email: str, password: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == email).first()
 
-    if not user or not verify_password(form.password, user.password):
-        raise HTTPException(401)
+    if not user or not verify_password(password, user.password):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
     if not user.is_verified:
-        raise HTTPException(403)
+        raise HTTPException(status_code=403, detail="Email not verified")
 
     token = create_access_token({"sub": user.email})
     return {"access_token": token}
+
+
+@router.get("/verify-email")
+def verify_email(token: str, db: Session = Depends(get_db)):
+    data = decode_token(token)
+    user = db.query(User).filter(User.email == data["sub"]).first()
+
+    user.is_verified = True
+    db.commit()
+
+    return {"message": "Email verified"}
