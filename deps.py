@@ -1,22 +1,23 @@
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
-from jose import jwt
+from jose import JWTError
 from sqlalchemy.orm import Session
-from database import get_db
-import models
-import os
+from src.conf.db import get_db
+from src.services.auth import decode_token
+from src.repository.users import get_user_by_email
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = "HS256"
-
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = decode_token(token)
         email = payload.get("sub")
-    except:
-        raise HTTPException(status_code=401, detail="Invalid token")
+    except JWTError:
+        raise HTTPException(401)
 
-    user = db.query(models.User).filter_by(email=email).first()
+    user = await get_user_by_email(db, email)
+
+    if user is None:
+        raise HTTPException(401)
+
     return user
