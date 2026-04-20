@@ -6,7 +6,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 from slowapi import _rate_limit_exceeded_handler
 
-from src.routes import auth, contacts, users
+from routes import auth, contacts, users
 
 limiter = Limiter(key_func=get_remote_address)
 

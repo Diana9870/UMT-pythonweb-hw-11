@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from src.models.user import User
+from models.user import User
 
 async def get_user_by_email(db: Session, email: str):
     return db.query(User).filter(User.email == email).first()
