@@ -17,11 +17,6 @@ async def me(user=Depends(get_current_user)):
 
 router = APIRouter(prefix="/api/users")
 
-@router.get("/me")
-async def me(user=Depends(get_current_user)):
-    return user
-
-
 @router.patch("/avatar")
 async def avatar(file: UploadFile = File(...), user=Depends(get_current_user), db: Session = Depends(get_db)):
     url = await upload_avatar(file, user.id)
