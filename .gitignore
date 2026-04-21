@@ -1,28 +1,23 @@
-**pycache**/
+__pycache__/
 *.py[cod]
 *$py.class
 *.so
 
-
 venv/
-.env/
 .venv/
-
+env/
 
 .env
 .env.*
 !.env.example
 
-
 *.db
 *.sqlite3
-
 
 build/
 dist/
 *.egg-info/
 .eggs/
-
 
 .pytest_cache/
 .coverage
@@ -37,10 +32,8 @@ docker-compose.override.yml
 *.swp
 *.swo
 
-
 media/
 uploads/
-
 
 .DS_Store
 Thumbs.db
