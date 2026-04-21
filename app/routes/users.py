@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, UploadFile, File
 from sqlalchemy.orm import Session
 
-from deps import get_current_user
-from conf.db import get_db
-from services.cloudinary_service import upload_avatar
+from app.deps import get_current_user
+from app.conf.db import get_db
+from app.services.cloudinary_service import upload_avatar
 
 from slowapi import Limiter
 from slowapi.util import get_remote_address

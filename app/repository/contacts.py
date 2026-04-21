@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from models.contact import Contact
+from app.models.contact import Contact
 
 async def create_contact(db: Session, data, user_id):
     contact = Contact(**data.dict(), user_id=user_id)
