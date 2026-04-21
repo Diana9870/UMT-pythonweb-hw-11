@@ -2,14 +2,13 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
-from slowapi.util import get_remote_address
+
+from app.services.limiter import limiter 
 
 from routes import auth, contacts, users
 
-limiter = Limiter(key_func=get_remote_address)
 
 app = FastAPI(
     title="Contacts API",
@@ -18,7 +17,6 @@ app = FastAPI(
 )
 
 app.state.limiter = limiter
-
 
 @app.exception_handler(RateLimitExceeded)
 async def rate_limit_handler(request: Request, exc: RateLimitExceeded):

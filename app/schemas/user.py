@@ -7,7 +7,7 @@ class UserBase(BaseModel):
 
 
 class UserCreate(UserBase):
-    password: str = Field(min_length=6, max_length=100)
+    password: str = Field(min_length=6, max_length=128)
 
 
 class UserLogin(BaseModel):
@@ -21,13 +21,10 @@ class UserResponse(UserBase):
     avatar: Optional[str] = None
 
     class Config:
-        from_attributes = True 
+        from_attributes = True
+        orm_mode = True
 
 
 class Token(BaseModel):
     access_token: str
-    token_type: str = "bearer"
-
-
-class UserUpdateAvatar(BaseModel):
-    avatar: str
+    token_type: str = Field(default="bearer")
