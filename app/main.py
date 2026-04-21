@@ -7,7 +7,7 @@ from slowapi.middleware import SlowAPIMiddleware
 
 from app.services.limiter import limiter 
 
-from routes import auth, contacts, users
+from app.routes import auth, contacts, users
 
 
 app = FastAPI(
